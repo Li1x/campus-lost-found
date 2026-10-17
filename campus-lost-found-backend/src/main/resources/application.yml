@@ -1,0 +1,88 @@
+# ============================================
+# 校园失物招领系统 - 应用配置
+# ============================================
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: campus-lost-found
+
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/campus_lost_found?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+
+  # 文件上传限制
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 20MB
+
+  # JSON 序列化配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  mapper-locations: classpath:/mapper/**/*.xml
+  configuration:
+    # 驼峰命名自动映射
+    map-underscore-to-camel-case: true
+    # SQL 日志（开发环境）
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      # 逻辑删除字段
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      # 主键策略
+      id-type: auto
+
+# JWT 配置
+jwt:
+  secret: campus-lost-found-jwt-secret-key-2026
+  # Access Token 有效期（秒）：24小时
+  access-token-expiry: 86400
+  # Refresh Token 有效期（秒）：7天
+  refresh-token-expiry: 604800
+  issuer: campus-lost-found
+
+# 文件上传配置
+upload:
+  # 上传根路径
+  base-path: ./uploads
+  # 允许的图片格式
+  allowed-types:
+    - image/jpeg
+    - image/png
+    - image/webp
+  # 头像最大大小（字节）：2MB
+  avatar-max-size: 2097152
+  # 物品图片最大大小（字节）：5MB
+  item-max-size: 5242880
+  # 每个物品最多图片数
+  item-max-count: 3
+
+# 业务配置
+business:
+  # 登录失败锁定阈值
+  login-fail-threshold: 5
+  # 登录锁定时长（分钟）
+  login-lock-minutes: 30
+  # 物品自动过期天数
+  item-expire-days: 30
+
+# 日志配置
+logging:
+  level:
+    com.campus.lostfound: debug
+    com.baomidou.mybatisplus: debug

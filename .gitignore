@@ -1,0 +1,48 @@
+# ============================================
+# 校园失物招领系统 - Git 忽略规则配置
+# ============================================
+
+# 1. 前端依赖与打包产物
+**/node_modules/
+**/dist/
+**/dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 2. 后端 Maven 编译产物
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# 3. 运行时动态生成的上传图片与日志
+**/uploads/
+**/logs/
+*.log
+
+# 4. IDE 工具与开发环境私有配置
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+.toolbox/
+.agents/
+
+# 5. 临时缓存与Office锁定文件
+tmp/
+temp/
+~$*
+
