@@ -84,7 +84,7 @@
           <el-input
             v-model="claimForm.description"
             type="textarea"
-            rows="4"
+            :rows="4"
             placeholder="请详细说明您的物品特征（如锁屏壁纸、隐藏暗号、购买凭据等），以便发布者核验"
           />
         </el-form-item>

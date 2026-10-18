@@ -91,12 +91,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { http } from '@/utils/request'
+import type { PageResult } from '@/types'
 
 const router = useRouter()
 
-const categories = ref([
+const categories = ref<any[]>([
   { id: 1, name: '证件证照' },
   { id: 2, name: '数码电子' },
   { id: 3, name: '书籍文具' },
@@ -109,10 +111,41 @@ const categories = ref([
 
 const lostList = ref<any[]>([])
 const foundList = ref<any[]>([])
+const loading = ref(false)
+
+async function loadHomeData() {
+  try {
+    loading.value = true
+    // 并行请求：最新寻物启事（5条）、最新招领启事（5条）、最新分类
+    const [lostRes, foundRes, catRes] = await Promise.allSettled([
+      http.get<PageResult<any>>('/lost-items', { page: 1, size: 5 }),
+      http.get<PageResult<any>>('/found-items', { page: 1, size: 5 }),
+      http.get<any[]>('/categories'),
+    ])
+
+    if (lostRes.status === 'fulfilled' && lostRes.value?.data?.records) {
+      lostList.value = lostRes.value.data.records
+    }
+    if (foundRes.status === 'fulfilled' && foundRes.value?.data?.records) {
+      foundList.value = foundRes.value.data.records
+    }
+    if (catRes.status === 'fulfilled' && catRes.value?.data && Array.isArray(catRes.value.data)) {
+      categories.value = catRes.value.data
+    }
+  } catch (error) {
+    console.error('加载首页最新信息失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
 
 function goToCategory(categoryId: number) {
   router.push({ path: '/found', query: { categoryId } })
 }
+
+onMounted(() => {
+  loadHomeData()
+})
 </script>
 
 <style scoped>

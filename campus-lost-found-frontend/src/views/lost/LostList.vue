@@ -4,7 +4,7 @@
       <el-form :inline="true" :model="query" class="filter-form">
         <el-form-item label="分类">
           <el-select v-model="query.categoryId" placeholder="全部" clearable style="width: 140px">
-            <el-option label="全部" :value="undefined" />
+            <el-option label="全部" value="" />
             <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
           </el-select>
         </el-form-item>

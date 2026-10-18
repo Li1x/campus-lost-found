@@ -68,7 +68,7 @@
                   <el-input
                     v-model="profileForm.contactInfo"
                     type="textarea"
-                    rows="2"
+                    :rows="2"
                     placeholder="例如微信号、QQ号或常在教学楼等"
                   />
                 </el-form-item>

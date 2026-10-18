@@ -57,7 +57,7 @@
           <el-input
             v-model="form.description"
             type="textarea"
-            rows="4"
+            :rows="4"
             placeholder="请详细描述物品的外观特征、颜色、划痕等细节，便于识别核对..."
           />
         </el-form-item>
