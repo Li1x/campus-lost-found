@@ -5,9 +5,25 @@
       <el-col :xs="24" :md="8">
         <el-card class="user-card" shadow="never">
           <div class="avatar-section">
-            <el-avatar :size="80" :src="userStore.userInfo?.avatar || defaultAvatar">
-              {{ userStore.userInfo?.nickname?.charAt(0) || 'U' }}
-            </el-avatar>
+            <el-upload
+              action="/api/files/upload"
+              :headers="uploadHeaders"
+              :show-file-list="false"
+              :on-success="handleAvatarSuccess"
+              :before-upload="beforeAvatarUpload"
+              class="avatar-uploader"
+            >
+              <div class="avatar-trigger-left" title="点击更换头像">
+                <el-avatar :size="96" :src="getImageUrl(userStore.userInfo?.avatar) || defaultAvatar" class="avatar-img">
+                  {{ userStore.userInfo?.nickname?.charAt(0) || 'U' }}
+                </el-avatar>
+                <div class="avatar-hover-mask">
+                  <el-icon :size="22"><Camera /></el-icon>
+                  <span class="mask-text">更换头像</span>
+                </div>
+              </div>
+            </el-upload>
+            <div class="avatar-tip-text">点击头像即可更换</div>
             <h3 class="name">{{ userStore.userInfo?.nickname || userStore.userInfo?.username }}</h3>
             <p class="role-tag">
               <el-tag :type="roleTagType" effect="light" round>
@@ -50,10 +66,6 @@
               >
                 <el-form-item label="昵称" prop="nickname">
                   <el-input v-model="profileForm.nickname" placeholder="输入昵称" />
-                </el-form-item>
-
-                <el-form-item label="头像地址" prop="avatar">
-                  <el-input v-model="profileForm.avatar" placeholder="图片 URL 地址" />
                 </el-form-item>
 
                 <el-form-item label="手机号码" prop="phone">
@@ -137,6 +149,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { updateProfileApi, changePasswordApi } from '@/api/user'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
+import { Camera } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -148,6 +161,53 @@ const pwdFormRef = ref<FormInstance>()
 
 const updatingProfile = ref(false)
 const changingPwd = ref(false)
+
+const uploadHeaders = computed(() => {
+  const token = localStorage.getItem('access_token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+})
+
+function getImageUrl(url?: string): string {
+  if (!url) return ''
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  return url.startsWith('/') ? url : `/${url}`
+}
+
+function beforeAvatarUpload(file: File) {
+  const isImage = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
+  const isLt2M = file.size / 1024 / 1024 < 2
+  if (!isImage) {
+    ElMessage.error('上传头像图片只能是 JPG、PNG 或 WEBP 格式!')
+    return false
+  }
+  if (!isLt2M) {
+    ElMessage.error('上传头像图片大小不能超过 2MB!')
+    return false
+  }
+  return true
+}
+
+async function handleAvatarSuccess(response: any) {
+  if (response.code === 200 && response.data?.url) {
+    const newAvatar = response.data.url
+    profileForm.avatar = newAvatar
+    try {
+      updatingProfile.value = true
+      // 仅提交 avatar 进行更新，与其他表单项彻底解耦，避免因未填写手机号导致保存失败
+      const res = await updateProfileApi({
+        avatar: newAvatar,
+      })
+      userStore.updateUserInfo(res.data)
+      ElMessage.success('头像更换成功并已自动保存')
+    } catch (err: any) {
+      ElMessage.error(err.message || '头像保存失败，请稍后重试')
+    } finally {
+      updatingProfile.value = false
+    }
+  } else {
+    ElMessage.error(response.message || '头像上传失败')
+  }
+}
 
 const profileForm = reactive({
   nickname: '',
@@ -180,7 +240,6 @@ const roleTagType = computed(() => {
 const profileRules: FormRules = {
   nickname: [{ required: true, message: '昵称不能为空', trigger: 'blur' }],
   phone: [
-    { required: true, message: '手机号不能为空', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' },
   ],
   email: [{ type: 'email', message: '邮箱格式不正确', trigger: 'blur' }],
@@ -226,10 +285,11 @@ async function handleUpdateProfile() {
     if (valid) {
       try {
         updatingProfile.value = true
+        const phoneVal = profileForm.phone?.trim()
         const res = await updateProfileApi({
           nickname: profileForm.nickname.trim(),
           avatar: profileForm.avatar.trim() || undefined,
-          phone: profileForm.phone.trim(),
+          phone: phoneVal ? phoneVal : undefined,
           email: profileForm.email.trim() || undefined,
           contactInfo: profileForm.contactInfo.trim() || undefined,
         })
@@ -319,5 +379,63 @@ onMounted(async () => {
 .form-box {
   max-width: 500px;
   padding-top: 15px;
+}
+
+.avatar-uploader {
+  display: inline-block;
+}
+
+.avatar-trigger-left {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 3px solid #ffffff;
+  transition: all 0.3s ease;
+}
+
+.avatar-trigger-left:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+  border-color: #93c5fd;
+}
+
+.avatar-hover-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(2px);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  border-radius: 50%;
+}
+
+.avatar-trigger-left:hover .avatar-hover-mask {
+  opacity: 1;
+}
+
+.mask-text {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.avatar-tip-text {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 6px;
 }
 </style>

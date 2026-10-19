@@ -171,16 +171,13 @@ public class LostItemServiceImpl extends ServiceImpl<LostItemMapper, LostItem> i
         }
 
         // 图片列表
-        List<String> images = Collections.emptyList();
-        if (!isListMode) {
-            images = itemImageMapper.selectList(new LambdaQueryWrapper<ItemImage>()
-                            .eq(ItemImage::getItemType, ItemType.LOST.getCode())
-                            .eq(ItemImage::getItemId, item.getId())
-                            .orderByAsc(ItemImage::getSortOrder))
-                    .stream()
-                    .map(ItemImage::getUrl)
-                    .collect(Collectors.toList());
-        }
+        List<String> images = itemImageMapper.selectList(new LambdaQueryWrapper<ItemImage>()
+                        .eq(ItemImage::getItemType, ItemType.LOST.getCode())
+                        .eq(ItemImage::getItemId, item.getId())
+                        .orderByAsc(ItemImage::getSortOrder))
+                .stream()
+                .map(ItemImage::getUrl)
+                .collect(Collectors.toList());
 
         // 联系方式安全脱敏：若非本人且非管理员，脱敏显示
         String contactInfo = item.getContactInfo();

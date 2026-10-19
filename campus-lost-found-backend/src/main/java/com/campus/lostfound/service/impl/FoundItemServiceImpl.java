@@ -167,16 +167,14 @@ public class FoundItemServiceImpl extends ServiceImpl<FoundItemMapper, FoundItem
             avatar = user.getAvatar();
         }
 
-        List<String> images = Collections.emptyList();
-        if (!isListMode) {
-            images = itemImageMapper.selectList(new LambdaQueryWrapper<ItemImage>()
-                            .eq(ItemImage::getItemType, ItemType.FOUND.getCode())
-                            .eq(ItemImage::getItemId, item.getId())
-                            .orderByAsc(ItemImage::getSortOrder))
-                    .stream()
-                    .map(ItemImage::getUrl)
-                    .collect(Collectors.toList());
-        }
+        // 图片列表
+        List<String> images = itemImageMapper.selectList(new LambdaQueryWrapper<ItemImage>()
+                        .eq(ItemImage::getItemType, ItemType.FOUND.getCode())
+                        .eq(ItemImage::getItemId, item.getId())
+                        .orderByAsc(ItemImage::getSortOrder))
+                .stream()
+                .map(ItemImage::getUrl)
+                .collect(Collectors.toList());
 
         String contactInfo = item.getContactInfo();
         boolean isOwner = currentUserId != null && currentUserId.equals(item.getUserId());

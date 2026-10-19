@@ -12,13 +12,14 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# 2. 后端 Maven 编译产物
+# 2. 后端 Maven 编译产物与压缩包
 **/target/
 *.class
 *.jar
 *.war
 *.ear
 *.nar
+*.zip
 
 # 3. 运行时动态生成的上传图片与日志
 **/uploads/
@@ -45,4 +46,5 @@ Thumbs.db
 tmp/
 temp/
 ~$*
+*_all.sql
 
